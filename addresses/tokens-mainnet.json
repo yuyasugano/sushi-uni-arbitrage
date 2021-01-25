@@ -1,0 +1,13 @@
+{
+  "dai": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+  "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "usdt": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+  "weth": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+  "wbtc": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+  "comp": "0xc00e94cb662c3520282e6f5717214004a7f26888",
+  "link": "0x514910771af9ca656af840dff83e8264ecf986ca",
+  "rari": "0xfca59cd816ab1ead66534d82bc21e7515ce441cf",
+  "snx": "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f",
+  "yfi": "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e"
+}
+

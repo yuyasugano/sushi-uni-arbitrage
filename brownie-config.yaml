@@ -1,0 +1,22 @@
+# https://eth-brownie.readthedocs.io/en/latest/config.html
+compiler:
+    evm_version: null # the EVM version, byzantium, constantinople, petersburg
+    solc:
+        version: null # the version of the solc to use
+        optimizer:
+            enabled: true
+            runs: 200
+network:
+    default: development
+    development:
+        gas_limit: auto
+        gas_price: auto
+        gas_buffer: 1
+        reverting_tx_gas_limit: max
+        default_contract_owner: true
+        cmd_settings: null
+    mainnet-fork:
+        cmd_settings:
+            fork: https://mainnet.infura.io/v3/<your endpoint>
+
+autofetch_sources: true
