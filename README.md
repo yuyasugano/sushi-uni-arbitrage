@@ -30,8 +30,8 @@ INFURA_HTTP_URL=https://mainnet.infura.io/v3/<mainnet infura account>
 2. Configure `brownie-config.yaml` with appropriate parameters as required. 
 3. Install packages and compile Solidity code.
 ```sh
-npm install
-brownie compile
+$ npm install
+$ brownie compile
 ```
 4. Deploy the contract to the network if needed
   
