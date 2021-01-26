@@ -211,7 +211,7 @@ const init = async () => {
                 const [gasPrice, gasCost] = await Promise.all([
                     web3.eth.getGasPrice(),
                     tx.estimateGas({from: admin}),
-                });
+                ]);
 
                 const txCost = web3.utils.toBN(gasCost) * web3.utils.toBN(gasPrice);
                 const profit = amountIn - amountOut - txCost;
