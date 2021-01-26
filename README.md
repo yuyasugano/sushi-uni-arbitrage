@@ -4,7 +4,7 @@ A sample triangular arbitrage application with a dYdX flashloan via Sushi & Uni.
  
 ## software version
 
-Ensure your `node` and `truffle` version is higher than mine:
+Ensure your `node` and `brownie` version is higher than mine:
 ```sh
 $ node -v
 v13.7.0
