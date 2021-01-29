@@ -58,10 +58,10 @@ const amount = process.env.TRADE_AMOUNT;
 
 const init = async () => {
     const networkId = await web3.eth.net.getId();
-    /*const flashloan = new web3.eth.Contract(
+    const flashloan = new web3.eth.Contract(
         Flashloan.abi,
         Flashloan.networks[networkId].address
-    );*/
+    );
 
     // leverage Fetcher by the SDK
     // https://uniswap.org/docs/v2/javascript-SDK/fetching-data/
@@ -134,8 +134,8 @@ const init = async () => {
         for (let i = 0; i < tokenPairs.length; i++) {
             console.log(`Investigation path: ${tokenPairs[i][0]} -> ${tokenPairs[i][1]} -> ${tokenPairs[i][2]}`);
             // 0. Prepare a trading amout from environmental variable
-            const unit0 = await amount;
-            const amount0 = await BigInt(web3.utils.toBN(web3.utils.toWei(unit0)).toString());
+            const unit0 = await new BigNumber(amount).toString(); // BigNumber
+            const amount0 = await BigInt(new BigNumber(unit0).shiftedBy(tokenFetchers[i][0].decimals).toString());
 
             // 1. Sell A for B at Uniswap
             const uAtoB = await uFetcher.fetchPairData(
@@ -148,13 +148,14 @@ const init = async () => {
                 new uTokenAmount(tokenFetchers[i][0], amount0),
                 uTradeType.EXACT_INPUT
             );
-            const rate1 = await trade1.executionPrice.toSignificant(6);
+            const rate1 = await new BigNumber(trade1.executionPrice.toSignificant(6)).toString();
             console.log(`Putting ${unit0} ${tokenPairs[i][0]} into Uniswap pool`);
+            console.log(`Rate ${tokenPairs[i][0]}/${tokenPairs[i][1]}: ${rate1}`);
             console.log(`Sell ${tokenPairs[i][0]} for ${tokenPairs[i][1]} at Uniswap: ${rate1 * unit0}`);
 
             // 2. Sell B for C at Sushiswap
-            const unit1 = await new BigNumber(rate1).times(unit0).toString();
-            const amount1 = await BigInt(new BigNumber(rate1).times(unit0).shiftedBy(18).toFixed());
+            const unit1 = await new BigNumber(rate1).times(unit0).toString(); // BigNumber
+            const amount1 = await BigInt(new BigNumber(rate1).times(unit0).shiftedBy(tokenFetchers[i][2].decimals).toFixed()); // BigInt
             // indirect path from B to C, refer to the pricing chapter
             // https://uniswap.org/docs/v2/javascript-SDK/pricing/
             const sBtoWeth = await sFetcher.fetchPairData(
@@ -171,13 +172,14 @@ const init = async () => {
                 new sTokenAmount(tokenFetchers[i][2], amount1),
                 sTradeType.EXACT_INPUT
             );
-            const rate2 = await trade2.executionPrice.toSignificant(6);
+            const rate2 = await new BigNumber(trade2.executionPrice.toSignificant(6)).toString();
             console.log(`Putting ${unit1} ${tokenPairs[i][1]} into Sushiswap pool`);
+            console.log(`Rate ${tokenPairs[i][1]} for ${tokenPairs[i][2]}: ${rate2}`);
             console.log(`Sell ${tokenPairs[i][1]} for ${tokenPairs[i][2]} at Sushiswap: ${rate2 * unit1}`);
 
             // 3. Sell C for A at Uniswap
-            const unit2 = await new BigNumber(rate2).times(unit1).toString();
-            const amount2 = await BigInt(new BigNumber(rate2).times(unit1).shiftedBy(18).toFixed());
+            const unit2 = await new BigNumber(rate2).times(unit1).toString(); // BigNumber
+            const amount2 = await BigInt(new BigNumber(rate2).times(unit1).shiftedBy(tokenFetchers[i][4].decimals).toFixed()); // BigInt
             const uCtoA = await uFetcher.fetchPairData(
                 tokenFetchers[i][6],
                 tokenFetchers[i][5]
@@ -188,17 +190,18 @@ const init = async () => {
                 new uTokenAmount(tokenFetchers[i][5], amount2),
                 uTradeType.EXACT_INPUT
             );
-            const rate3 = await trade3.executionPrice.toSignificant(6);
+            const rate3 = await new BigNumber(trade3.executionPrice.toSignificant(6)).toString();
             console.log(`Putting ${unit2} ${tokenPairs[i][2]} into Uniswap pool`);
+            console.log(`Rate ${tokenPairs[i][2]} for ${tokenPairs[i][0]}: ${rate3}`);
             console.log(`Sell ${tokenPairs[i][2]} for ${tokenPairs[i][0]} at Uniswap: ${rate3 * unit2}`);
 
-            const unit4 = await new BigNumber(rate3).times(unit2).toString();
-            const amountOut = await web3.utils.toBN(web3.utils.toWei(unit0)).toString();
-            const amountIn = await web3.utils.toBN(web3.utils.toWei(unit4)).toString();
+            const unit4 = await new BigNumber(rate3).times(unit2).toString(); // BigNumber
+            let profit = await new BigNumber(unit4).minus(unit0).toString();
             console.log(`Initial supply from a flashloan: ${unit0}`);
             console.log(`Obtained amount after an arbitrage: ${unit4}`);
+            console.log(`Profit: ${profit}`);
 
-            if (amountIn > amountOut) {
+            if (profit > 0) {
                 
                 const tx = flashloan.methods.initiateFlanLoan(
                     addresses.dydx.solo,
@@ -214,9 +217,9 @@ const init = async () => {
                 ]);
 
                 const txCost = web3.utils.toBN(gasCost) * web3.utils.toBN(gasPrice);
-                const profit = amountIn - amountOut - txCost;
+                const profit = amountIn - amountOut - txCost; */
                 if (profit > 0) {
-                    console.log(`Arbitrage opportunity found! Expected profit: ${profit}`);
+                    console.log(`Block # ${block.number}: Arbitrage opportunity found! Expected profit: ${profit}`);
                     const data = tx.encodeABI();
                     const txData = {
                         from: admin,
@@ -228,7 +231,7 @@ const init = async () => {
                     const receipt = await web3.eth.sendTransaction(txData);
                     console.log(`Transaction hash: ${receipt.transactionHash}`);
                 } else {
-                    console.log(`Arbitrage opportunity not found. Expected profit: ${profit}`);
+                    console.log(`Block # ${block.number}: Arbitrage opportunity not found. Expected profit: ${profit}`);
                 }
             }
         }

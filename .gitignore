@@ -6,6 +6,7 @@
 
 # Ignore build files.
 .env
+index.test.js
 build/contracts/*
 node_modules/*
 tests/test_flashloan.py
