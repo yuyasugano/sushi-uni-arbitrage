@@ -217,7 +217,7 @@ const init = async () => {
                 ]);
 
                 const txCost = web3.utils.toBN(gasCost) * web3.utils.toBN(gasPrice);
-                const profit = amountIn - amountOut - txCost; */
+                profit = amountIn - amountOut - txCost;
                 if (profit > 0) {
                     console.log(`Block # ${block.number}: Arbitrage opportunity found! Expected profit: ${profit}`);
                     const data = tx.encodeABI();
