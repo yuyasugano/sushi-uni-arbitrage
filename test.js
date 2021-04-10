@@ -9,9 +9,6 @@ const { mainnet: addresses } = require('./addresses');
 const { address: admin } = web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY);
 const BigNumber = require('bignumber.js');
 
-// compile and confirm the file exists
-const Flashloan = require('./build/contracts/Flashloan.json');
-
 // use @sushiswap/sdk@3.0.0
 const {
     ChainId: sChainId,
@@ -58,10 +55,6 @@ const amount = process.env.TRADE_AMOUNT;
 
 const init = async () => {
     const networkId = await web3.eth.net.getId();
-    const flashloan = new web3.eth.Contract(
-        Flashloan.abi,
-        Flashloan.networks[networkId].address
-    );
 
     // leverage Fetcher by the SDK
     // https://uniswap.org/docs/v2/javascript-SDK/fetching-data/
@@ -88,7 +81,7 @@ const init = async () => {
 
     // same Fetcher by the SDK
     // https://uniswap.org/docs/v2/javascript-SDK/fetching-data/
-    const [uDai, uWeth, uUsdt, uUsdb, uWbtc, uComp, uLink, uRari, uSnx, uYfi] = await Promise.all(
+    const [uDai, uWeth, uUsdt, uUsdc, uWbtc, uComp, uLink, uRari, uSnx, uYfi] = await Promise.all(
         [
             addresses.tokens.dai,
             addresses.tokens.weth,
@@ -155,7 +148,7 @@ const init = async () => {
 
             // 2. Sell B for C at Sushiswap
             const unit1 = await new BigNumber(rate1).times(unit0).toString(); // BigNumber
-            const amount1 = await BigInt(new BigNumber(rate1).times(unit0).shiftedBy(tokenFetchers[i][2].decimals).toFixed()); // BigInt
+            const amount1 = await BigInt(new BigNumber(rate1).times(unit1).shiftedBy(tokenFetchers[i][2].decimals).toFixed()); // BigInt
             // indirect path from B to C, refer to the pricing chapter
             // https://uniswap.org/docs/v2/javascript-SDK/pricing/
             const sBtoWeth = await sFetcher.fetchPairData(
@@ -174,7 +167,7 @@ const init = async () => {
             );
             const rate2 = await new BigNumber(trade2.executionPrice.toSignificant(6)).toString();
             console.log(`Putting ${unit1} ${tokenPairs[i][1]} into Sushiswap pool`);
-            console.log(`Rate ${tokenPairs[i][1]} for ${tokenPairs[i][2]}: ${rate2}`);
+            console.log(`Rate ${tokenPairs[i][1]}/${tokenPairs[i][2]}: ${rate2}`);
             console.log(`Sell ${tokenPairs[i][1]} for ${tokenPairs[i][2]} at Sushiswap: ${rate2 * unit1}`);
 
             // 3. Sell C for A at Uniswap
@@ -202,44 +195,15 @@ const init = async () => {
             console.log(`Profit: ${profit}`);
 
             if (profit > 0) {
-                
-                const tx = flashloan.methods.initiateFlanLoan(
-                    addresses.dydx.solo,
-                    addresses.tokens.weth,
-                    addresses.tokens.dai,
-                    addresses.tokens.link,
-                    amountOut
-                );
-
-                const [gasPrice, gasCost] = await Promise.all([
-                    web3.eth.getGasPrice(),
-                    tx.estimateGas({from: admin}),
-                ]);
-
-                const txCost = web3.utils.toBN(gasCost) * web3.utils.toBN(gasPrice) * 2;
-                profit = profit - txCost;
-
-                if (profit > 0) {
-                    console.log(`
-                        Block # ${block.number}: Arbitrage opportunity found!
-                        Expected profit: ${profit}
-                    `);
-                    const data = tx.encodeABI();
-                    const txData = {
-                        from: admin,
-                        to: flashloan.options.address,
-                        data,
-                        gas: gasCost,
-                        gasPrice
-                    };
-                    const receipt = await web3.eth.sendTransaction(txData);
-                    console.log(`Transaction hash: ${receipt.transactionHash}`);
-                } else {
-                    console.log(`
-                        Block # ${block.number}: Arbitrage opportunity not found.
-                        Expected profit: ${profit}
-                    `);
-                }
+                console.log(`
+                    Block # ${block.number}: Arbitrage opportunity found!
+                    Expected profit: ${profit}
+                `);
+            } else {
+                console.log(`
+                    Block # ${block.number}: Arbitrage opportunity not found.
+                    Expected profit: ${profit}
+                `);
             }
         }
     })

@@ -24,7 +24,7 @@ contract Flashloan is ICallee, DydxFlashloanBase {
         uint256 repayAmount
     );
 
-    address owner;
+    address private owner;
     address constant wethAddress = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address constant uniswapAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address constant sushiswapAddress = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
